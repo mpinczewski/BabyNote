@@ -19,10 +19,10 @@ jobs:
           pipenv install --skip-lock --system --dev
       - name: Run Migrations
         run: |
-          cd finaen/
+          cd BabyNote/
           python manage.py makemigrations
           python manage.py migrate
       - name: Run Tests
         run: |
-          cd finaen/
+          cd BabyNote/
           python manage.py test
