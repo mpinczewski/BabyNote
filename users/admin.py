@@ -3,7 +3,7 @@ from django.contrib.auth.admin import UserAdmin
 
 # Register your models here.	from .forms import CustomUserCreationForm, CustomUserChangeForm
 from .forms import CustomUserChangeForm, CustomUserCreationForm
-from .models import CustomUser
+from .models import CustomUser, Profile
 
 
 class CustomUserAdmin(UserAdmin):
@@ -27,3 +27,12 @@ class CustomUserAdmin(UserAdmin):
 
 
 admin.site.register(CustomUser, CustomUserAdmin)
+
+
+@admin.register(Profile)
+class ProfileAdmin(admin.ModelAdmin):
+    exclude = []
+    list_display = ['user']
+    list_filter = ('name',)
+    search_fields = ('gender',)
+
