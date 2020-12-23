@@ -42,4 +42,3 @@ class Profile(models.Model):
     postal_code = models.CharField(max_length=6, blank=True, null=True)
     address = models.CharField(max_length=128, blank=True, null=True)
     gender = models.CharField(max_length=11, choices=MyModel.ProfileGender.choices, default=MyModel.ProfileGender.UNN)
-
