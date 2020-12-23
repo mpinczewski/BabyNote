@@ -23,4 +23,22 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
-        
+
+class MyModel(models.Model):
+    class ProfileGender(models.TextChoices):
+        MAL = 'Male', "Mężczyzna"
+        FEM = 'Female', "Kobieta"
+        UNN = 'Unknown', "Nie Wybrano"
+
+    class BabyGender(models.TextChoices):
+        BOY = 'Man', "Mężczyzna"
+        GRL = "Woman", "Kobieta"
+        UNN = 'Unknown', "Nie Wybrano"
+
+class Profile(models.Model):
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    name = models.CharField(max_length=64, blank=True, null=True)
+    profile_birth = models.DateField()
+    postal_code = models.CharField(max_length=6, blank=True, null=True)
+    address = models.CharField(max_length=128, blank=True, null=True)
+    gender = models.CharField(max_length=11, choices=MyModel.ProfileGender.choices, default=MyModel.ProfileGender.UNN)
