@@ -1,9 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-# Register your models here.	from .forms import CustomUserCreationForm, CustomUserChangeForm
 from .forms import CustomUserChangeForm, CustomUserCreationForm
-from .models import CustomUser, Profile
+from .models import CustomUser, Profile, Baby
 
 
 class CustomUserAdmin(UserAdmin):
@@ -35,4 +34,13 @@ class ProfileAdmin(admin.ModelAdmin):
     list_display = ['user']
     list_filter = ('name',)
     search_fields = ('gender',)
+
+
+@admin.register(Baby)
+class BabyAdmin(admin.ModelAdmin):
+    exclude = [""]               # wszystkie pola oprócz: ""
+    list_display = ["baby_name",]   # pola do wyśiwetlenia na liście
+    list_filter = ('baby_gender',)          # filtrowanie po rpawej stronie
+    search_fields = ('baby_name',)          # wyszukiwanie po polu
+
 
