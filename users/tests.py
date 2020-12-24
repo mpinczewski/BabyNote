@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
-from .models import Profile, CustomUser
+from .models import Profile, CustomUser, Baby
 
 
 class UsersManagersTests(TestCase):
@@ -69,3 +69,33 @@ class ProfileTests(TestCase):
         self.assertEqual(profile.postal_code, self.test_postal_code)
         self.assertEqual(profile.address, self.test_address)
         self.assertEqual(profile.gender, self.test_gender)
+
+
+class BabyTests(TestCase):
+
+    def setUp(self):
+        self.test_user = 1
+        self.test_profile = 1
+        self.test_baby_name = 'Wiesław'
+        self.test_baby_birth = '2020-03-12'
+        self.test_baby_gender = 'Chłopiec'
+        self.test_baby_weight = '4 Kg'
+        self.test_baby_height = '57 cm'
+        return super().setUp()
+
+    def test_profile_creation(self):
+        user = CustomUser.objects.create(id=1)
+        profile = Profile.objects.create(user=user)
+        baby = Baby.objects.create(profile=profile,
+                                         baby_name='Wiesław',
+                                         baby_birth = '2020-03-12',
+                                         baby_gender = 'Chłopiec',
+                                         baby_weight = '4 Kg',
+                                         baby_height = '57 cm'
+                                         )
+        self.assertEqual(baby.id, 1)
+        self.assertEqual(baby.baby_name, self.test_baby_name)
+        self.assertEqual(baby.baby_birth, self.test_baby_birth)
+        self.assertEqual(baby.baby_gender, self.test_baby_gender)
+        self.assertEqual(baby.baby_weight, self.test_baby_weight)
+        self.assertEqual(baby.baby_height, self.test_baby_height)
