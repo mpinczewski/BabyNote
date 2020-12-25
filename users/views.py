@@ -6,6 +6,11 @@ from .serializers import UserSerializer, RegistrationSerializer
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
+from rest_framework.authtoken.models import Token
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+
+from django.contrib.auth import authenticate, login
 
 class Users(APIView):
 
@@ -33,8 +38,14 @@ class RegisterUser(APIView):
 
         if serializer.is_valid():
             account = serializer.save()
+
+# generuje token przy rejestracji
+            token = Token.objects.create(user=account)
+
             data['response'] = "Registered new user."
             data['email'] = account.email
+            token = Token.objects.get(user=account).key
+            data['token'] = token
 
         else:
             data = serializer.errors
@@ -43,6 +54,8 @@ class RegisterUser(APIView):
 
 
 class UserDetails(APIView):
+
+    permission_classes = [IsAuthenticated]
     
     def get_object(self, pk):
         try:
@@ -52,20 +65,33 @@ class UserDetails(APIView):
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
     def get(self, request, pk):
-        user = self.get_object(pk)
-        serializer = UserSerializer(user)
+        
+        logged_user = self.get_object(pk)
+        serializer = UserSerializer(logged_user)
+        saved_user = request.user
+
+        if saved_user != logged_user:
+            return Response({'response': 'brak uprawnien'})
+        
         return Response(serializer.data)
 
     def put(self, request, pk):
-        user = self.get_object(pk)
-        serializer = UserSerializer(user, data=request.data)
+
+        logged_user = self.get_object(pk)
+        serializer = UserSerializer(logged_user, data=request.data)
+        saved_user = request.user
+
+        if saved_user != logged_user:
+            return Response({'response': 'brak uprawnien'})
 
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         user = self.get_object(pk)
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+
