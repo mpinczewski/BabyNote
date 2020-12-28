@@ -1,0 +1,26 @@
+# This workflows will upload a Python Package using Twine when a release is created
+# For more information see: https://help.github.com/en/actions/language-and-framework-guides/using-python-with-github-actions#publishing-to-package-registries
+name: Testing
+on: push
+
+jobs:
+  test_project:
+    runs-on: ubuntu-18.04
+  
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8'
+      - name: Install dependecies
+        run: | 
+          pip install --upgrade pip
+          pip install pipenv
+          pipenv install --skip-lock --system --dev
+      - name: Run Migrations
+        run: |
+          python manage.py makemigrations
+          python manage.py migrate
+      - name: Run Tests
+        run: |
+          python manage.py test
