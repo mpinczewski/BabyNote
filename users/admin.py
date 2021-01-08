@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .forms import CustomUserChangeForm, CustomUserCreationForm
-from .models import CustomUser, Profile, Baby
+from .models import CustomUser, Profile, Baby, TempJWTToken
 
 
 class CustomUserAdmin(UserAdmin):
@@ -26,6 +26,7 @@ class CustomUserAdmin(UserAdmin):
 
 
 admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.register(TempJWTToken)
 
 
 @admin.register(Profile)
@@ -42,5 +43,3 @@ class BabyAdmin(admin.ModelAdmin):
     list_display = ["baby_name",]   # pola do wyśiwetlenia na liście
     list_filter = ('baby_gender',)          # filtrowanie po rpawej stronie
     search_fields = ('baby_name',)          # wyszukiwanie po polu
-
-

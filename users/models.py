@@ -1,3 +1,5 @@
+from django.conf import settings
+
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
@@ -5,6 +7,10 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 
 from users.managers import CustomUserManager
+
+from rest_framework_simplejwt import backends
+
+import jwt
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
@@ -288,3 +294,15 @@ class Baby(models.Model):
 
     def __str__(self):
         return self.baby_name
+
+class TempJWTToken(models.Model):
+    refresh = models.CharField(max_length=264)
+    access = models.CharField(max_length=264)
+
+    def __str__(self):
+
+# rozkodowanie tokena
+        self.token_user_id = jwt.decode(self.refresh, key=settings.SECRET_KEY, algorithms='HS256')
+
+        return str(self.token_user_id['user_id'])
+

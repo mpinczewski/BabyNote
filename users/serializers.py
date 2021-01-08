@@ -1,6 +1,9 @@
 from .models import CustomUser
 from rest_framework import serializers
 
+from django.contrib.auth import get_user_model
+
+
 
 class RegistrationSerializer(serializers.ModelSerializer):
 
@@ -29,3 +32,10 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = CustomUser
         fields = ['email', 'id']
+
+
+class LoginSerializer(serializers.Serializer):
+
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'password',]

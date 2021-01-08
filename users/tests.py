@@ -1,6 +1,10 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from .models import Profile, CustomUser, Baby
+from rest_framework.test import APIRequestFactory, APITestCase
+from rest_framework import response, status
+from django.urls import reverse
+
 
 
 class UsersManagersTests(TestCase):
@@ -99,3 +103,32 @@ class BabyTests(TestCase):
         self.assertEqual(baby.baby_gender, self.test_baby_gender)
         self.assertEqual(baby.baby_weight, self.test_baby_weight)
         self.assertEqual(baby.baby_height, self.test_baby_height)
+
+
+user = get_user_model()
+print(type(get_user_model))
+
+# def user_factory(**kwargs):
+#     return User.objects.create_user(**kwargs)
+
+
+# def profile_factory(email=None, password=None, user=None):
+#     if not user:
+#         user = user_factory(email=email, password=password)
+#     return Profile.objects.create(user=user)
+
+class RestistrationTests(APITestCase):
+
+    # def setUp(self):
+    #    self.profile = profile_factory('dobrytyp@gmail.com', 'qweqwe1!') 
+    #    return super().setUp()
+
+    def test_post_user(self):
+        User = get_user_model()
+        url = reverse("register")
+        data = {'email': 'dobrytyp@gmail.com', 'password': 'qweqwe1!'}
+        response = self.client.post(url, data, format = 'json')
+        # print(CustomUser.objects.get().email)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        # self.assertEqual(user.objects.count(), 1)
+        self.assertEqual(User.objects.get().email, 'dobrytyp@gmail.com')
