@@ -16,5 +16,5 @@ urlpatterns = [
 
 # allauth
     path('accounts/', include('allauth.urls')),
-    path('login/', LoginView.as_view()),
+    path('login/', LoginView.as_view(), name="login"),
 ]
