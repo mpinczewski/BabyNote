@@ -6,7 +6,6 @@ from rest_framework import response, status
 from django.urls import reverse
 
 
-
 class UsersManagersTests(TestCase):
 
     def test_create_user(self):
@@ -62,9 +61,9 @@ class ProfileTests(TestCase):
         user = CustomUser.objects.create(id=1)
         profile = Profile.objects.create(user=user,
                                          name='Wiesław',
-                                         profile_birth = '2020-03-12',
+                                         profile_birth='2020-03-12',
                                          postal_code='04-076',
-                                         address = 'Iżycka 21, Warszawa',
+                                         address='Iżycka 21, Warszawa',
                                          gender='Male'
                                          )
         self.assertEqual(profile.id, 1)
@@ -91,12 +90,12 @@ class BabyTests(TestCase):
         user = CustomUser.objects.create(id=1)
         profile = Profile.objects.create(user=user)
         baby = Baby.objects.create(profile=profile,
-                                         baby_name='Wiesław',
-                                         baby_birth = '2020-03-12',
-                                         baby_gender = 'Chłopiec',
-                                         baby_weight = '4 Kg',
-                                         baby_height = '57 cm'
-                                         )
+                                   baby_name='Wiesław',
+                                   baby_birth='2020-03-12',
+                                   baby_gender='Chłopiec',
+                                   baby_weight='4 Kg',
+                                   baby_height='57 cm'
+                                   )
         self.assertEqual(baby.id, 1)
         self.assertEqual(baby.baby_name, self.test_baby_name)
         self.assertEqual(baby.baby_birth, self.test_baby_birth)
@@ -108,6 +107,7 @@ class BabyTests(TestCase):
 user = get_user_model()
 print(type(get_user_model))
 
+
 # def user_factory(**kwargs):
 #     return User.objects.create_user(**kwargs)
 
@@ -117,18 +117,26 @@ print(type(get_user_model))
 #         user = user_factory(email=email, password=password)
 #     return Profile.objects.create(user=user)
 
-class RestistrationTests(APITestCase):
+# class ResgistrationTests(APITestCase):
+#
+#     def test_post_user(self):
+#         User = get_user_model()
+#         url = reverse("register")
+#         data = {'email': 'dobrytyp@gmail.com', 'password': 'qweqwe1!'}
+#         response = self.client.post(url, data, format='json')
+#         # print(CustomUser.objects.get().email)
+#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+#         # self.assertEqual(user.objects.count(), 1)
+#         self.assertEqual(User.objects.get().email, 'dobrytyp@gmail.com')
 
-    # def setUp(self):
-    #    self.profile = profile_factory('dobrytyp@gmail.com', 'qweqwe1!') 
-    #    return super().setUp()
 
-    def test_post_user(self):
-        User = get_user_model()
+class AccountTests(APITestCase):
+    def test_create_account(self):
+        user = get_user_model()
         url = reverse("register")
-        data = {'email': 'dobrytyp@gmail.com', 'password': 'qweqwe1!'}
-        response = self.client.post(url, data, format = 'json')
-        # print(CustomUser.objects.get().email)
+        data = {"email": "info@gmail.pl", "password": "qweqwe1!", "password2": "qweqwe1!"}
+        response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        # self.assertEqual(user.objects.count(), 1)
-        self.assertEqual(User.objects.get().email, 'dobrytyp@gmail.com')
+        print(user.objects.get().email)
+        self.assertEqual(user.objects.count(), 1)
+        self.assertEqual(user.objects.get().email, "info@gmail.pl")

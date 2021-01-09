@@ -1,16 +1,12 @@
+import jwt
 from django.conf import settings
-
-from django.db import models
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
-from django.utils.translation import gettext_lazy as _
+from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from users.managers import CustomUserManager
-
-from rest_framework_simplejwt import backends
-
-import jwt
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):

@@ -17,6 +17,7 @@ from .generate_token import generate_access_token, generate_refresh_token
 
 from .user_authentication import is_authenticated
 
+
 class LoginView(APIView):
     def get(self, request):
 
@@ -45,23 +46,22 @@ class LoginView(APIView):
 
         return Response({'Poszło': 'zapisane w bazie danych', 'access_token': access_token})
 
+
 class Users(APIView):
 
     def get(self, request):
-        
         users = CustomUser.objects.all()
-        serializer = UserSerializer(users, many=True)      
+        serializer = UserSerializer(users, many=True)
 
         return Response(serializer.data)
 
     def post(self, request):
-        
         serializer = UserSerializer(data=request.data)
 
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -79,16 +79,16 @@ class RegisterUser(APIView):
 
         else:
             data = serializer.errors
-        
+
         return Response(data, status.HTTP_201_CREATED)
 
 
 class UserDetails(APIView):
-   
+
     def get_object(self, pk):
         try:
             return CustomUser.objects.get(pk=pk)
-        
+
         except:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
@@ -105,7 +105,7 @@ class UserDetails(APIView):
 
         if saved_user != logged_user:
             return Response({'response': 'brak uprawnien'})
-        
+
         return Response(serializer.data)
 
     def put(self, request, pk):
@@ -127,4 +127,3 @@ class UserDetails(APIView):
         user = self.get_object(pk)
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
