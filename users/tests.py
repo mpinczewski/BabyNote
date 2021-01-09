@@ -111,6 +111,15 @@ class AccountTests(APITestCase):
         data = {"email": "info@gmail.pl", "password": "qweqwe1!", "password2": "qweqwe1!"}
         response = self.client.post(url, data, format="json")
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        print(user.objects.get().email)
         self.assertEqual(user.objects.count(), 1)
         self.assertEqual(user.objects.get().email, "info@gmail.pl")
+        return user
+
+    def test_login(self):
+        user = get_user_model()
+        user1 = user.objects.create_user(email='normal@user.com', password='foo')
+        response = self.client.post(reverse("login"), {'email': 'normal@user.com', 'password': 'foo'})
+        access_token = response.json()["access_token"]
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(type(access_token), str)
+
