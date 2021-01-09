@@ -104,32 +104,6 @@ class BabyTests(TestCase):
         self.assertEqual(baby.baby_height, self.test_baby_height)
 
 
-user = get_user_model()
-print(type(get_user_model))
-
-
-# def user_factory(**kwargs):
-#     return User.objects.create_user(**kwargs)
-
-
-# def profile_factory(email=None, password=None, user=None):
-#     if not user:
-#         user = user_factory(email=email, password=password)
-#     return Profile.objects.create(user=user)
-
-# class ResgistrationTests(APITestCase):
-#
-#     def test_post_user(self):
-#         User = get_user_model()
-#         url = reverse("register")
-#         data = {'email': 'dobrytyp@gmail.com', 'password': 'qweqwe1!'}
-#         response = self.client.post(url, data, format='json')
-#         # print(CustomUser.objects.get().email)
-#         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-#         # self.assertEqual(user.objects.count(), 1)
-#         self.assertEqual(User.objects.get().email, 'dobrytyp@gmail.com')
-
-
 class AccountTests(APITestCase):
     def test_create_account(self):
         user = get_user_model()
