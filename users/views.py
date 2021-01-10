@@ -15,7 +15,6 @@ class LoginView(APIView):
     def get(self, request):
 
         response = {'request': request.data}
-
         return Response(response)
 
     def post(self, request):
@@ -34,7 +33,6 @@ class LoginView(APIView):
             raise exceptions.AuthenticationFailed('Wrong Password.')
 
         token = get_token(user)
-
         return Response({'token': token})
 
 
