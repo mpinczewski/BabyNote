@@ -119,7 +119,7 @@ class AccountTests(APITestCase):
         user = get_user_model()
         user1 = user.objects.create_user(email='normal@user.com', password='foo')
         response = self.client.post(reverse("login"), {'email': 'normal@user.com', 'password': 'foo'})
-        access_token = response.json()["access_token"]
+        access_token = response.json()["token"]["access"]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(type(access_token), str)
 
