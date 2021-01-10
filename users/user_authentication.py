@@ -8,6 +8,9 @@ def is_authenticated(request, saved_user):
     raw_token       = jwt_object.get_raw_token(header)
     validated_token = jwt_object.get_validated_token(raw_token)
     user            = jwt_object.get_user(validated_token)
+    print(user)
+    print(saved_user)
+
 
 # nie działa weryfikacja sprawdzająca czy user z tokena jest w bazie!!!
     if not saved_user:
