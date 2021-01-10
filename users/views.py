@@ -11,35 +11,37 @@ from .generate_token import get_token
 
 from .user_authentication import is_authenticated
 
+
 class LoginView(APIView):
     def get(self, request):
 
-        response = {'request': request.data}
+        response = {"request": request.data}
 
         return Response(response)
 
     def post(self, request):
 
-        email = request.data.get('email')
-        password = request.data.get('password')
+        email = request.data.get("email")
+        password = request.data.get("password")
 
         if (email is None) or (password is None):
-            raise exceptions.AuthenticationFailed('Email and Password must be provided.')
+            raise exceptions.AuthenticationFailed(
+                "Email and Password must be provided."
+            )
 
         user = CustomUser.objects.filter(email=email).first()
 
         if user is None:
-            raise exceptions.AuthenticationFailed('User not found.')
+            raise exceptions.AuthenticationFailed("User not found.")
         if not user.check_password(password):
-            raise exceptions.AuthenticationFailed('Wrong Password.')
+            raise exceptions.AuthenticationFailed("Wrong Password.")
 
         token = get_token(user)
 
-        return Response({'token': token})
+        return Response({"token": token})
 
 
 class Users(APIView):
-
     def get(self, request):
         users = CustomUser.objects.all()
         serializer = UserSerializer(users, many=True)
@@ -57,7 +59,6 @@ class Users(APIView):
 
 
 class RegisterUser(APIView):
-
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
         data = {}
@@ -65,8 +66,8 @@ class RegisterUser(APIView):
         if serializer.is_valid():
             account = serializer.save()
 
-            data['response'] = "Registered new user."
-            data['email'] = account.email
+            data["response"] = "Registered new user."
+            data["email"] = account.email
 
         else:
             data = serializer.errors
@@ -75,7 +76,6 @@ class RegisterUser(APIView):
 
 
 class UserDetails(APIView):
-
     def get_object(self, pk):
         try:
             return CustomUser.objects.get(pk=pk)
@@ -106,5 +106,3 @@ class UserDetails(APIView):
             return Response(serializer.data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
