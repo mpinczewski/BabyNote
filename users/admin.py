@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
 from .forms import CustomUserChangeForm, CustomUserCreationForm
-from .models import CustomUser, Profile, Baby, TempJWTToken
+from .models import CustomUser, Profile, Baby
 
 
 class CustomUserAdmin(UserAdmin):
@@ -26,7 +26,7 @@ class CustomUserAdmin(UserAdmin):
 
 
 admin.site.register(CustomUser, CustomUserAdmin)
-admin.site.register(TempJWTToken)
+
 
 
 @admin.register(Profile)
