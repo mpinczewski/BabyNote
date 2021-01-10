@@ -1,23 +1,49 @@
-from django.shortcuts import render
-from django.http import HttpResponse
+# from django.core import exceptions
+from django.http import HttpResponse, response
 from .models import CustomUser
 from .serializers import UserSerializer, RegistrationSerializer
 
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.authtoken.models import Token
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView, exceptions
 
-from django.contrib.auth import authenticate, login
+from .generate_token import get_token
+
+from .user_authentication import is_authenticated
+
+class LoginView(APIView):
+    def get(self, request):
+
+        response = {'request': request.data}
+
+        return Response(response)
+
+    def post(self, request):
+
+        email = request.data.get('email')
+        password = request.data.get('password')
+
+        if (email is None) or (password is None):
+            raise exceptions.AuthenticationFailed('Email and Password must be provided.')
+
+        user = CustomUser.objects.filter(email=email).first()
+
+        if user is None:
+            raise exceptions.AuthenticationFailed('User not found.')
+        if not user.check_password(password):
+            raise exceptions.AuthenticationFailed('Wrong Password.')
+
+        token = get_token(user)
+
+        return Response({'token': token})
+
 
 class Users(APIView):
 
     def get(self, request):
-        
         users = CustomUser.objects.all()
         serializer = UserSerializer(users, many=True)
+
         return Response(serializer.data)
 
     def post(self, request):
@@ -26,7 +52,7 @@ class Users(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -39,50 +65,41 @@ class RegisterUser(APIView):
         if serializer.is_valid():
             account = serializer.save()
 
-# generuje token przy rejestracji
-            token = Token.objects.create(user=account)
-
             data['response'] = "Registered new user."
             data['email'] = account.email
-            token = Token.objects.get(user=account).key
-            data['token'] = token
 
         else:
             data = serializer.errors
-        
-        return Response(data)
+
+        return Response(data, status.HTTP_201_CREATED)
 
 
 class UserDetails(APIView):
 
-    permission_classes = [IsAuthenticated]
-    
     def get_object(self, pk):
         try:
             return CustomUser.objects.get(pk=pk)
-        
+
         except:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
-    def get(self, request, pk):
-        
-        logged_user = self.get_object(pk)
-        serializer = UserSerializer(logged_user)
-        saved_user = request.user
+    def authorize_user(self, request, pk):
 
-        if saved_user != logged_user:
-            return Response({'response': 'brak uprawnien'})
-        
+        saved_user = self.get_object(pk)
+        logged_user = is_authenticated(request, saved_user)
+        return logged_user
+
+    def get(self, request, pk):
+
+        authorize_user = self.authorize_user(request, pk)
+        serializer = UserSerializer(authorize_user)
+
         return Response(serializer.data)
 
     def put(self, request, pk):
 
-        logged_user = self.get_object(pk)
-        serializer = UserSerializer(logged_user, data=request.data)
-        saved_user = request.user
-
-        if saved_user != logged_user:
-            return Response({'response': 'brak uprawnien'})
+        authorize_user = self.authorize_user(request, pk)
+        serializer = UserSerializer(authorize_user, data=request.data)
 
         if serializer.is_valid():
             serializer.save()
@@ -90,8 +107,4 @@ class UserDetails(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
-        user = self.get_object(pk)
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
 

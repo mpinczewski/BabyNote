@@ -1,6 +1,9 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
 from .models import Profile, CustomUser, Baby
+from rest_framework.test import APIRequestFactory, APITestCase
+from rest_framework import response, status
+from django.urls import reverse
 
 
 class UsersManagersTests(TestCase):
@@ -58,9 +61,9 @@ class ProfileTests(TestCase):
         user = CustomUser.objects.create(id=1)
         profile = Profile.objects.create(user=user,
                                          name='Wiesław',
-                                         profile_birth = '2020-03-12',
+                                         profile_birth='2020-03-12',
                                          postal_code='04-076',
-                                         address = 'Iżycka 21, Warszawa',
+                                         address='Iżycka 21, Warszawa',
                                          gender='Male'
                                          )
         self.assertEqual(profile.id, 1)
@@ -87,15 +90,36 @@ class BabyTests(TestCase):
         user = CustomUser.objects.create(id=1)
         profile = Profile.objects.create(user=user)
         baby = Baby.objects.create(profile=profile,
-                                         baby_name='Wiesław',
-                                         baby_birth = '2020-03-12',
-                                         baby_gender = 'Chłopiec',
-                                         baby_weight = '4 Kg',
-                                         baby_height = '57 cm'
-                                         )
+                                   baby_name='Wiesław',
+                                   baby_birth='2020-03-12',
+                                   baby_gender='Chłopiec',
+                                   baby_weight='4 Kg',
+                                   baby_height='57 cm'
+                                   )
         self.assertEqual(baby.id, 1)
         self.assertEqual(baby.baby_name, self.test_baby_name)
         self.assertEqual(baby.baby_birth, self.test_baby_birth)
         self.assertEqual(baby.baby_gender, self.test_baby_gender)
         self.assertEqual(baby.baby_weight, self.test_baby_weight)
         self.assertEqual(baby.baby_height, self.test_baby_height)
+
+
+class AccountTests(APITestCase):
+    def test_create_account(self):
+        user = get_user_model()
+        url = reverse("register")
+        data = {"email": "info@gmail.pl", "password": "qweqwe1!", "password2": "qweqwe1!"}
+        response = self.client.post(url, data, format="json")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(user.objects.count(), 1)
+        self.assertEqual(user.objects.get().email, "info@gmail.pl")
+        return user
+
+    def test_login(self):
+        user = get_user_model()
+        user1 = user.objects.create_user(email='normal@user.com', password='foo')
+        response = self.client.post(reverse("login"), {'email': 'normal@user.com', 'password': 'foo'})
+        access_token = response.json()["token"]["access"]
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(type(access_token), str)
+

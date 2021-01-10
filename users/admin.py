@@ -28,6 +28,7 @@ class CustomUserAdmin(UserAdmin):
 admin.site.register(CustomUser, CustomUserAdmin)
 
 
+
 @admin.register(Profile)
 class ProfileAdmin(admin.ModelAdmin):
     exclude = []
@@ -42,5 +43,3 @@ class BabyAdmin(admin.ModelAdmin):
     list_display = ["baby_name",]   # pola do wyśiwetlenia na liście
     list_filter = ('baby_gender',)          # filtrowanie po rpawej stronie
     search_fields = ('baby_name',)          # wyszukiwanie po polu
-
-
