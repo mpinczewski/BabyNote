@@ -1,5 +1,3 @@
-import jwt
-from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
@@ -290,15 +288,3 @@ class Baby(models.Model):
 
     def __str__(self):
         return self.baby_name
-
-class TempJWTToken(models.Model):
-    refresh = models.CharField(max_length=264)
-    access = models.CharField(max_length=264)
-
-    def __str__(self):
-
-# rozkodowanie tokena
-        self.token_user_id = jwt.decode(self.refresh, key=settings.SECRET_KEY, algorithms='HS256')
-
-        return str(self.token_user_id['user_id'])
-

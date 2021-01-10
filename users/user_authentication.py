@@ -1,40 +1,31 @@
-from django.conf import settings
-# from django.contrib.auth import get_user_model
-from rest_framework import exceptions
-import jwt
-from .models import CustomUser
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.views import exceptions
 
-
-def is_authenticated(token, saved_user):
-
-    token_user_id = token
-
-    print(token_user_id)
+def is_authenticated(request, saved_user):
+    
+    jwt_object      = JWTAuthentication() 
+    header          = jwt_object.get_header(request)
+    raw_token       = jwt_object.get_raw_token(header)
+    validated_token = jwt_object.get_validated_token(raw_token)
+    user            = jwt_object.get_user(validated_token)
+    print(user)
     print(saved_user)
 
-    if not token_user_id:
-        return None
 
+# nie działa weryfikacja sprawdzająca czy user z tokena jest w bazie!!!
     if not saved_user:
-        return None
-
-    try:
-        token_payload = jwt.decode(token_user_id, key=settings.SECRET_KEY, algorithms='HS256')
-        
-        print('--------------------')
-        print(token_payload)
-
-    except jwt.ExpiredSignatureError:
-        raise exceptions.AuthenticationFailed('Token expired')
-    # except IndexError:
-    #     raise exceptions.AuthenticationFailed('Token prefix missing')
-
-    user = CustomUser.objects.filter(id=token_payload['user_id']).first()
+        raise exceptions.AuthenticationFailed('No user database')
 
     if user is None:
-        raise exceptions.AuthenticationFailed('User not found')
+        raise exceptions.AuthenticationFailed('No user data provided')
+
+    if user != saved_user:
+        raise exceptions.AuthenticationFailed('Wrong user')
 
     if not user.is_active:
-        raise exceptions.AuthenticationFailed('User is not active')
+        raise exceptions.AuthenticationFailed('User is inactive')
 
-    return (user, None)
+    return (saved_user)
+
+
+    

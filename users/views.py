@@ -1,27 +1,21 @@
-from django.core import exceptions
-from django.shortcuts import render
+# from django.core import exceptions
 from django.http import HttpResponse, response
-from .models import CustomUser, TempJWTToken
+from .models import CustomUser
 from .serializers import UserSerializer, RegistrationSerializer
 
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.views import APIView
-from rest_framework.authtoken.models import Token
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView, exceptions
 
-from rest_framework_simplejwt.backends import TokenBackend
-
-from .generate_token import generate_access_token, generate_refresh_token
+from .generate_token import get_token
 
 from .user_authentication import is_authenticated
-
 
 class LoginView(APIView):
     def get(self, request):
 
         response = {'request': request.data}
+
         return Response(response)
 
     def post(self, request):
@@ -39,12 +33,9 @@ class LoginView(APIView):
         if not user.check_password(password):
             raise exceptions.AuthenticationFailed('Wrong Password.')
 
-        access_token = generate_access_token(user)
-        refresh_token = generate_refresh_token(user)
-        token_data = TempJWTToken(refresh=refresh_token, access=access_token)
-        token_data.save()
+        token = get_token(user)
 
-        return Response({'Poszło': 'zapisane w bazie danych', 'access_token': access_token})
+        return Response({'token': token})
 
 
 class Users(APIView):
@@ -92,30 +83,23 @@ class UserDetails(APIView):
         except:
             return HttpResponse(status=status.HTTP_404_NOT_FOUND)
 
-    def get(self, request, pk):
+    def authorize_user(self, request, pk):
 
         saved_user = self.get_object(pk)
-        token = request.headers.get('Authorization')
-        logged_user = is_authenticated(token, saved_user)
+        logged_user = is_authenticated(request, saved_user)
+        return logged_user
 
-        serializer = UserSerializer(saved_user)
+    def get(self, request, pk):
 
-        if not logged_user:
-            return Response({'response': 'brak uprawnien(token nie został przekazany)'})
-
-        if saved_user != logged_user:
-            return Response({'response': 'brak uprawnien'})
+        authorize_user = self.authorize_user(request, pk)
+        serializer = UserSerializer(authorize_user)
 
         return Response(serializer.data)
 
     def put(self, request, pk):
 
-        saved_user = self.get_object(pk)
-        serializer = UserSerializer(saved_user, data=request.data)
-        logged_user = request.user
-
-        if saved_user != logged_user:
-            return Response({'response': 'brak uprawnien'})
+        authorize_user = self.authorize_user(request, pk)
+        serializer = UserSerializer(authorize_user, data=request.data)
 
         if serializer.is_valid():
             serializer.save()
@@ -123,7 +107,4 @@ class UserDetails(APIView):
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, pk):
-        user = self.get_object(pk)
-        user.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+
