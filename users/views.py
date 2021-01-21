@@ -1,26 +1,22 @@
 # from django.core import exceptions
-from django.http import HttpResponse, response
-from .models import CustomUser
-from .serializers import UserSerializer, RegistrationSerializer
+from .models import CustomUser, Profile
+from .serializers import ProfileSerializer, UserSerializer, RegistrationSerializer
 
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.views import APIView, exceptions
 
-from .generate_token import get_token
-
-from .user_authentication import is_authenticated
+from .utils.generate_token import get_token
+from .utils.user_authentication import authenticate_user, get_profile, get_profile_id
 
 
 class LoginView(APIView):
     def get(self, request):
-
         response = {"request": request.data}
 
         return Response(response)
 
     def post(self, request):
-
         email = request.data.get("email")
         password = request.data.get("password")
 
@@ -58,51 +54,62 @@ class Users(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class RegisterUser(APIView):
+class RegisterUser(generics.CreateAPIView):
     def post(self, request):
         serializer = RegistrationSerializer(data=request.data)
         data = {}
 
         if serializer.is_valid():
             account = serializer.save()
-
             data["response"] = "Registered new user."
             data["email"] = account.email
+            profile_email = request.POST.get('email')
+            user = CustomUser.objects.get(email=profile_email)
+            profile = Profile(user=user)
+            profile.save()
 
         else:
             data = serializer.errors
 
         return Response(data, status.HTTP_201_CREATED)
 
-
-class UserDetails(APIView):
-    def get_object(self, pk):
-        try:
-            return CustomUser.objects.get(pk=pk)
-
-        except:
-            return HttpResponse(status=status.HTTP_404_NOT_FOUND)
-
-    def authorize_user(self, request, pk):
-
-        saved_user = self.get_object(pk)
-        logged_user = is_authenticated(request, saved_user)
-        return logged_user
-
-    def get(self, request, pk):
-
-        authorize_user = self.authorize_user(request, pk)
-        serializer = UserSerializer(authorize_user)
+class UserDetails(generics.ListCreateAPIView):
+    def get(self, request):
+        token_user = authenticate_user(request)
+        serializer = UserSerializer(token_user)
 
         return Response(serializer.data)
 
-    def put(self, request, pk):
-
-        authorize_user = self.authorize_user(request, pk)
-        serializer = UserSerializer(authorize_user, data=request.data)
+    def patch(self, request):
+        token_user = authenticate_user(request)
+        serializer = UserSerializer(token_user, data=request.data)
 
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class ProfileDetails(generics.RetrieveUpdateAPIView):
+    queryset = Profile.objects.all()
+    serializer_class = ProfileSerializer
+    
+    def get_object(self):
+        queryset = self.filter_queryset(self.get_queryset())
+        queryset = queryset.filter(user=get_profile_id(self.request))
+        obj = generics.get_object_or_404(queryset)
+        self.check_object_permissions(self.request, obj)
+
+        return obj
+
+    def get(self, request):
+        profile_data = get_profile(request)
+        serializer = ProfileSerializer(profile_data)
+
+        return Response(serializer.data)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+   
