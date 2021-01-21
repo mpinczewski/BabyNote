@@ -92,6 +92,7 @@ class UserDetails(generics.ListCreateAPIView):
 
 
 class ProfileDetails(generics.RetrieveUpdateAPIView):
+    
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
     
@@ -111,5 +112,6 @@ class ProfileDetails(generics.RetrieveUpdateAPIView):
 
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
+
 
    
