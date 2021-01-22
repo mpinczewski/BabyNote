@@ -63,10 +63,8 @@ class RegisterUser(generics.CreateAPIView):
             account = serializer.save()
             data["response"] = "Registered new user."
             data["email"] = account.email
-            profile_email = request.POST.get('email')
-            user = CustomUser.objects.get(email=profile_email)
-            profile = Profile(user=user)
-            profile.save()
+            profile_id = account.id
+            Profile.objects.create(user_id=profile_id)
 
         else:
             data = serializer.errors
