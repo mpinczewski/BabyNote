@@ -1,8 +1,5 @@
-from .models import CustomUser
+from .models import CustomUser, Profile
 from rest_framework import serializers
-
-from django.contrib.auth import get_user_model
-
 
 class RegistrationSerializer(serializers.ModelSerializer):
 
@@ -39,4 +36,20 @@ class LoginSerializer(serializers.Serializer):
         fields = [
             "email",
             "password",
+        ]
+
+class ProfileSerializer(serializers.HyperlinkedModelSerializer):
+
+    user = serializers.PrimaryKeyRelatedField(
+        queryset=CustomUser.objects.all(), required=False
+    )
+    class Meta:
+        model = Profile
+        fields = [
+            "user",
+            "name",
+            "profile_birth",
+            "postal_code",
+            "address",
+            "gender"
         ]
