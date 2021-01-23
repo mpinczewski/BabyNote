@@ -1,6 +1,7 @@
 from .models import CustomUser, Profile
 from rest_framework import serializers
 
+
 class RegistrationSerializer(serializers.ModelSerializer):
 
     password2 = serializers.CharField(style={"input_type": "password"}, write_only=True)
@@ -38,18 +39,13 @@ class LoginSerializer(serializers.Serializer):
             "password",
         ]
 
+
 class ProfileSerializer(serializers.HyperlinkedModelSerializer):
 
     user = serializers.PrimaryKeyRelatedField(
         queryset=CustomUser.objects.all(), required=False
     )
+
     class Meta:
         model = Profile
-        fields = [
-            "user",
-            "name",
-            "profile_birth",
-            "postal_code",
-            "address",
-            "gender"
-        ]
+        fields = ["user", "name", "profile_birth", "postal_code", "address", "gender"]

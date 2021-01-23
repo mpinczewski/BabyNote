@@ -1,4 +1,5 @@
 # from django.core import exceptions
+from rest_framework import response
 from .models import CustomUser, Profile
 from .serializers import ProfileSerializer, UserSerializer, RegistrationSerializer
 
@@ -71,6 +72,7 @@ class RegisterUser(generics.CreateAPIView):
 
         return Response(data, status.HTTP_201_CREATED)
 
+
 class UserDetails(generics.ListCreateAPIView):
     def get(self, request):
         token_user = authenticate_user(request)
@@ -90,10 +92,10 @@ class UserDetails(generics.ListCreateAPIView):
 
 
 class ProfileDetails(generics.RetrieveUpdateAPIView):
-    
+
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    
+
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(user=get_profile_id(self.request))
@@ -111,5 +113,5 @@ class ProfileDetails(generics.RetrieveUpdateAPIView):
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
 
-
-   
+    def put(self, request, *args, **kwargs):
+        return response.Response(status.HTTP_405_METHOD_NOT_ALLOWED)
