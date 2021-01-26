@@ -1,9 +1,56 @@
 from django.test import TestCase
 from django.contrib.auth import get_user_model
+from django.test import client
+from django.test.client import Client
 from .models import Profile, CustomUser, Baby
 from rest_framework.test import APIRequestFactory, APITestCase
 from rest_framework import response, status
 from django.urls import reverse
+
+from rest_framework.authtoken.models import Token
+from rest_framework.test import APIClient
+
+from users.utils.user_authentication import authenticate_user
+
+from rest_framework_simplejwt.tokens import RefreshToken
+
+User = get_user_model()
+
+
+def create_fake_login_token(email, password):
+    def _method_wrapper(function):
+        def wrapper(*args, **kwargs):
+            # print(email)
+            # print(password)
+            client = Client()
+            url = reverse("login")
+            data = {"email": email, "password": password}
+            response_login = client.post(url, data, format="json")
+
+            print(response_login.data)
+
+            # access_token = response_login.json()["token"]["access"]
+            access_token = response_login.json()["access"]
+            # access_token = response_login.json()["token"]["token"]["access"]
+            kwargs["access_token"] = f"Bearer {access_token}"
+            return function(*args, **kwargs)
+
+        return wrapper
+
+    return _method_wrapper
+
+
+def user_factory(**kwargs):
+    return User.objects.create_user(**kwargs)
+
+
+def profile_factory(email=None, password=None, user=None, account_status=None):
+    if not user:
+        user = user_factory(email=email, password=password)
+    profile = Profile.objects.create(user=user)
+    if account_status:
+        profile.save()
+    return profile
 
 
 class UsersManagersTests(TestCase):
@@ -118,48 +165,59 @@ class AccountTests(APITestCase):
         self.assertEqual(user.objects.count(), 1)
         self.assertEqual(user.objects.get().email, "info@gmail.pl")
 
-
     def test_login(self):
         user = get_user_model()
         user1 = user.objects.create_user(email="normal@user.com", password="foo")
         response = self.client.post(
             reverse("login"), {"email": "normal@user.com", "password": "foo"}
         )
-        access_token = response.json()["token"]["access"]
+        access_token = response.json()["access"]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(type(access_token), str)
 
 
-# class CategoryListViewApiTests(APITestCase):
-#     def setUp(self):
-#         self.profile = profile_factory(
-#             email="example_1@user.com", password="bar", account_status=AccountStatus.NPU
-#         )
-#         self.profile2 = profile_factory(
-#             email="example_2@user.com", password="bar", account_status=AccountStatus.NPU
-#         )
-#         self.category_data_set = {
-#             "profile": "1",
-#             "name": "Samochód",
-#             "short_name": "AUT",
-#             "description": "Wydatki na samochód",
-#         }
-#         return super().setUp()
+class ProfileDetailsTests(APITestCase):
 
-#     @create_fake_login_token("example_1@user.com", "bar")
-#     def test_category_post(self, **kwargs):
-#         url = reverse("categories")
-#         response_category_post = self.client.post(
-#             url,
-#             self.category_data_set,
-#             format="json",
-#             HTTP_AUTHORIZATION=kwargs["access_token"],
-#         )
-#         response_category_post_no_token = self.client.post(
-#             url,
-#             self.category_data_set,
-#             format="json",
-#         )
-#         self.assertEqual(response_category_post.data["name"], "Samochód")
-#         self.assertEqual(response_category_post.status_code, 201)
-#         self.assertEqual(response_category_post_no_token.status_code, 401)
+    def test_create_user(self, **kwargs):
+        # user = get_user_model()
+        client = Client()
+        url = reverse("register")
+        data = {
+            "email": "normal@user.com",
+            "password": "foo",
+            "password2": "foo",
+        }
+        response = client.post(url, data, format="json")
+
+        url = reverse("login")
+        data = {"email": "normal@user.com", "password": "foo"}
+
+        response_post = client.post(url, data, format="json")
+
+        access_token = response_post.json()["access"]
+
+        url = reverse("profile")
+        data = {
+            "name": "Wiesław",
+            "profile_birth": "2020-03-12",
+            "postal_code": "04-076",
+            "address": "Iżycka 21, Warszawa",
+            "gender": "Male",
+        }
+
+
+        client = APIClient()
+        dupa = client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
+
+        response_patch = client.patch(
+            url, data, format="json", HTTP_AUTHORIZATION=dupa
+        )
+        self.assertEqual(response_patch.data["name"], "Wiesław")
+
+        url = reverse("profile")
+
+        response_get = client.get(
+            url, format="json", HTTP_AUTHORIZATION=dupa
+        )
+
+        self.assertEqual(response_get.data["name"], "Wiesław")
