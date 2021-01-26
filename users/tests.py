@@ -17,27 +17,30 @@ from rest_framework_simplejwt.tokens import RefreshToken
 User = get_user_model()
 
 
-def create_fake_login_token(email, password):
-    def _method_wrapper(function):
-        def wrapper(*args, **kwargs):
-            # print(email)
-            # print(password)
-            client = Client()
-            url = reverse("login")
-            data = {"email": email, "password": password}
-            response_login = client.post(url, data, format="json")
+# def create_fake_login_token(email, password):
+#     def _method_wrapper(function):
+#         def wrapper(*args, **kwargs):
+#             # print(email)
+#             # print(password)
+#             client = Client()
+#             url = reverse("login")
+#             data = {"email": email, "password": password}
+#             response_login = client.post(url, data, format="json")
 
-            print(response_login.data)
+#             print(response_login.data)
 
-            # access_token = response_login.json()["token"]["access"]
-            access_token = response_login.json()["access"]
-            # access_token = response_login.json()["token"]["token"]["access"]
-            kwargs["access_token"] = f"Bearer {access_token}"
-            return function(*args, **kwargs)
+#             # access_token = response_login.json()["token"]["access"]
+#             access_token = response_login.json()["access"]
+#             # access_token = response_login.json()["token"]["token"]["access"]
+#             kwargs["access_token"] = f"Bearer {access_token}"
+#             return function(*args, **kwargs)
 
-        return wrapper
+#         return wrapper
 
-    return _method_wrapper
+#     return _method_wrapper
+"""""" """""" """""" """""" """""" """""" """""" """""" """"""
+"""Funkcje tworzą instancje Profile z gotowym User """
+"""""" """""" """""" """""" """""" """""" """""" """""" """"""
 
 
 def user_factory(**kwargs):
@@ -176,24 +179,17 @@ class AccountTests(APITestCase):
         self.assertEqual(type(access_token), str)
 
 
-class ProfileDetailsTests(APITestCase):
+class ProfileListViewApiTests(APITestCase):
+    def setUp(self):
+        self.profile = profile_factory(email="normal@user.com", password="foo")
+        self.client = APIClient()
+        return super().setUp()
 
-    def test_create_user(self, **kwargs):
-        # user = get_user_model()
-        client = Client()
-        url = reverse("register")
-        data = {
-            "email": "normal@user.com",
-            "password": "foo",
-            "password2": "foo",
-        }
-        response = client.post(url, data, format="json")
+    def test_profile_patch(self):
 
         url = reverse("login")
         data = {"email": "normal@user.com", "password": "foo"}
-
-        response_post = client.post(url, data, format="json")
-
+        response_post = self.client.post(url, data, format="json")
         access_token = response_post.json()["access"]
 
         url = reverse("profile")
@@ -204,20 +200,17 @@ class ProfileDetailsTests(APITestCase):
             "address": "Iżycka 21, Warszawa",
             "gender": "Male",
         }
-
-
-        client = APIClient()
-        dupa = client.credentials(HTTP_AUTHORIZATION=f'Bearer {access_token}')
-
-        response_patch = client.patch(
-            url, data, format="json", HTTP_AUTHORIZATION=dupa
+        user_token = self.client.credentials(
+            HTTP_AUTHORIZATION=f"Bearer {access_token}"
+        )
+        response_patch = self.client.patch(
+            url, data, format="json", HTTP_AUTHORIZATION=user_token
         )
         self.assertEqual(response_patch.data["name"], "Wiesław")
 
-        url = reverse("profile")
-
-        response_get = client.get(
-            url, format="json", HTTP_AUTHORIZATION=dupa
+        response_get = self.client.get(
+            url, data, format="json", HTTP_AUTHORIZATION=user_token
         )
 
         self.assertEqual(response_get.data["name"], "Wiesław")
+

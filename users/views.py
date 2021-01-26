@@ -108,10 +108,10 @@ class ProfileDetails(generics.RetrieveUpdateAPIView):
         profile_data = get_profile(request)
         serializer = ProfileSerializer(profile_data)
 
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
-    def patch(self, request, *args, **kwargs):
-        return self.partial_update(request, *args, **kwargs)
+    # def patch(self, request, *args, **kwargs):
+    #     return self.partial_update(request, *args, **kwargs)
 
     def put(self, request, *args, **kwargs):
         return response.Response(status.HTTP_405_METHOD_NOT_ALLOWED)
