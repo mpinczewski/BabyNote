@@ -16,6 +16,7 @@ def authenticate_user(request):
     except:
         raise exceptions.AuthenticationFailed("Bad token")
 
+
 def get_profile(request):
     """
     wyciągam z tokena przekazanego requestem obiekt usera
@@ -25,6 +26,7 @@ def get_profile(request):
         return Profile.objects.get(user=token_user)
     except:
         return HttpResponse(status=status.HTTP_404_NOT_FOUND)
+
 
 def get_profile_id(request):
 

@@ -117,7 +117,7 @@ class AccountTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(user.objects.count(), 1)
         self.assertEqual(user.objects.get().email, "info@gmail.pl")
-        return user
+
 
     def test_login(self):
         user = get_user_model()
@@ -128,3 +128,38 @@ class AccountTests(APITestCase):
         access_token = response.json()["token"]["access"]
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(type(access_token), str)
+
+
+# class CategoryListViewApiTests(APITestCase):
+#     def setUp(self):
+#         self.profile = profile_factory(
+#             email="example_1@user.com", password="bar", account_status=AccountStatus.NPU
+#         )
+#         self.profile2 = profile_factory(
+#             email="example_2@user.com", password="bar", account_status=AccountStatus.NPU
+#         )
+#         self.category_data_set = {
+#             "profile": "1",
+#             "name": "Samochód",
+#             "short_name": "AUT",
+#             "description": "Wydatki na samochód",
+#         }
+#         return super().setUp()
+
+#     @create_fake_login_token("example_1@user.com", "bar")
+#     def test_category_post(self, **kwargs):
+#         url = reverse("categories")
+#         response_category_post = self.client.post(
+#             url,
+#             self.category_data_set,
+#             format="json",
+#             HTTP_AUTHORIZATION=kwargs["access_token"],
+#         )
+#         response_category_post_no_token = self.client.post(
+#             url,
+#             self.category_data_set,
+#             format="json",
+#         )
+#         self.assertEqual(response_category_post.data["name"], "Samochód")
+#         self.assertEqual(response_category_post.status_code, 201)
+#         self.assertEqual(response_category_post_no_token.status_code, 401)
