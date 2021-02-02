@@ -1,11 +1,13 @@
 # from django.core import exceptions
-from rest_framework import response
-from .models import CustomUser, Profile
-from .serializers import ProfileSerializer, UserSerializer, RegistrationSerializer
+from .models import CustomUser, Profile, Baby
+from .serializers import BabySerializer, ProfileSerializer, UserSerializer, RegistrationSerializer
+
 
 from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.views import APIView, exceptions
+
+from django.http import HttpResponse
 
 from .utils.generate_token import get_token
 from .utils.user_authentication import authenticate_user, get_profile, get_profile_id
@@ -70,7 +72,7 @@ class RegisterUser(generics.CreateAPIView):
         else:
             data = serializer.errors
 
-        return Response(data, status.HTTP_201_CREATED)
+        return Response(serializer.data, status.HTTP_201_CREATED)
 
 
 class UserDetails(generics.ListCreateAPIView):
@@ -113,5 +115,87 @@ class ProfileDetails(generics.RetrieveUpdateAPIView):
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
 
-    def put(self, request, *args, **kwargs):
-        return response.Response(status.HTTP_405_METHOD_NOT_ALLOWED)
+
+class BabiesList(generics.ListCreateAPIView):
+
+    def get_data(self, request):
+
+        """
+        pobieram request, wyciągam z niego dane i tworzę nowy słownik do którego dodaje dodatkowo
+        id profilu
+
+        do sprawdzenia jak zabezpieczyć bazę przed wprowadzeniem złośliwych komend!!!!
+        """
+        
+        data = {
+            "profile": get_profile_id(request),
+            "baby_name": request.data['baby_name'],
+            "baby_birth": request.data['baby_birth'],
+            "baby_gender": request.data['baby_gender'],
+            "baby_weight": request.data['baby_weight'],
+            "baby_height":  request.data['baby_height'],
+        }
+
+        return data
+
+    def get_babies(self):
+        return Baby.objects.filter(profile_id = get_profile_id(self.request))
+
+    def get(self, request):
+        serializer = BabySerializer(self.get_babies(), many=True)
+
+        return Response(serializer.data, status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = BabySerializer(data=self.get_data(request))
+
+        if serializer.is_valid():
+            serializer.create_baby()
+            return Response(serializer.data, status.HTTP_201_CREATED)
+
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        
+
+class BabyDetails(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Baby.objects.all()
+    serializer_class = BabySerializer
+
+    def get_baby(self, pk):
+        """
+        Wyciągam z bazy danych dziecko z odpowiednim ID oraz odpowiednim właścicielem. 
+        Sprawdzam czy rekord istnieje.
+
+        """
+        baby = Baby.objects.filter(
+            id = pk, 
+            profile = get_profile_id(self.request)
+            ).exists()
+        
+        if baby:
+            return Baby.objects.get(
+                id = pk, 
+                profile = get_profile_id(self.request)
+                )
+        else:
+            raise exceptions.ValidationError("No such baby")
+
+    def get(self, request, pk):
+        baby = self.get_baby(pk)
+        serializer = BabySerializer(baby)
+
+        return Response(serializer.data)
+
+    def put(self, request, pk):
+        serializer = BabySerializer(self.get_baby(pk))
+
+        return Response(serializer.data)
+
+    def patch(self, request, *args, **kwargs):
+        return self.partial_update(request, *args, **kwargs)
+
+    def delete(self, request, pk):
+        serializer = BabySerializer(self.get_baby(pk))
+
+        return Response(serializer.data)
+  
