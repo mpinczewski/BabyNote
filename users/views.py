@@ -2,6 +2,7 @@
 from .models import CustomUser, Profile, Baby
 from .serializers import BabySerializer, ProfileSerializer, UserSerializer, RegistrationSerializer
 
+
 from rest_framework.response import Response
 from rest_framework import generics, status
 from rest_framework.views import APIView, exceptions
@@ -73,6 +74,7 @@ class RegisterUser(generics.CreateAPIView):
 
         return Response(serializer.data, status.HTTP_201_CREATED)
 
+
 class UserDetails(generics.ListCreateAPIView):
     def get(self, request):
         token_user = authenticate_user(request)
@@ -92,10 +94,10 @@ class UserDetails(generics.ListCreateAPIView):
 
 
 class ProfileDetails(generics.RetrieveUpdateAPIView):
-    
+
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
-    
+
     def get_object(self):
         queryset = self.filter_queryset(self.get_queryset())
         queryset = queryset.filter(user=get_profile_id(self.request))
@@ -112,6 +114,7 @@ class ProfileDetails(generics.RetrieveUpdateAPIView):
 
     def patch(self, request, *args, **kwargs):
         return self.partial_update(request, *args, **kwargs)
+
 
 class BabiesList(generics.ListCreateAPIView):
 
