@@ -64,12 +64,13 @@ class BabySerializer(serializers.ModelSerializer):
     class Meta:
         model = Baby
         fields = [
+            "id",
             "profile",
             "baby_name",
             "baby_birth",
             "baby_gender",
             "baby_weight",
-            "baby_height",
+            "baby_height"
         ]
 
     

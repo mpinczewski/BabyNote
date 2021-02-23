@@ -37,7 +37,7 @@ class LoginView(APIView):
 
         token = get_token(user)
 
-        return Response({"token": token})
+        return Response(token)
 
 
 class Users(APIView):
